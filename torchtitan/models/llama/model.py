@@ -413,7 +413,7 @@ class Transformer(nn.Module):
 
         self.tok_embeddings = nn.Embedding(model_args.vocab_size, model_args.dim)
         if model_args.average_grad_embedding:
-        self.tok_embeddings.register_backward_hook(average_grad_backward_hook(self.tok_embeddings))
+            self.tok_embeddings.register_backward_hook(average_grad_backward_hook(self.tok_embeddings))
 
         # TODO persistent should be set to false, since this buffer can be recomputed.
         # however, we set it to true for 2 reasons.  (1) due to pytorch/pytorch#123411,
