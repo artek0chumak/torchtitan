@@ -194,11 +194,12 @@ class ContinuesLearningScheduler:
         self.scheduler = scheduler
 
     def __getitem__(self, idx: int):
+        seq_len = max(item["seq_len"] for item in self.scheduler)
         for item in self.scheduler:
             before_step, seq_len = item["before_step"], item["seq_len"]
             if before_step <= idx:
-                return seq_len
-        return self.scheduler[-1]["seq_len"]
+                seq_len = seq_len
+        return seq_len
 
 
 def build_hf_data_loader(
