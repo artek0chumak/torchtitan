@@ -71,7 +71,7 @@ class HuggingFaceDataset(IterableDataset, Stateful):
         world_size: int = 1,
         rank: int = 0,
         infinite: bool = False,
-        continues_learning_scheduler: Optional[list] = None,
+        continues_learning_scheduler: Optional[ContinuesLearningScheduler] = None,
     ) -> None:
         # allow user to pass in a (local or HF hub) path to use unsupported datasets
         if dataset_name not in _supported_datasets:
@@ -104,20 +104,16 @@ class HuggingFaceDataset(IterableDataset, Stateful):
         self.seq_len = seq_len
         self.infinite = infinite
         self.continues_learning_scheduler = continues_learning_scheduler
-        self.continues_learning_scheduler_idx = 0
 
         # variables for checkpointing
         self._sample_idx = 0
         self._all_tokens: List[int] = []
 
     def __iter__(self):
-        self.continues_learning_scheduler_idx = 0
-
         while True:
             for sample in self._get_data_iter():
-                self.continues_learning_scheduler_idx += 1
                 if self.continues_learning_scheduler is not None:
-                    seq_len = self.continues_learning_scheduler[self.continues_learning_scheduler_idx]
+                    seq_len = self.continues_learning_scheduler[self._sample_idx]
                 else:
                     seq_len = self.seq_len
 
@@ -221,5 +217,5 @@ def build_hf_data_loader(
     return DPAwareDataLoader(rank, hf_ds, batch_size=batch_size)
 
 
-def build_continues_learning_scheduler(continues_learning_scheduler: list[tuple[int, int]]):
+def build_continues_learning_scheduler(continues_learning_scheduler: list[dict[str, int]]):
     return ContinuesLearningScheduler(continues_learning_scheduler)
