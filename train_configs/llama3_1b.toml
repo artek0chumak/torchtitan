@@ -14,6 +14,7 @@ profile_freq = 100
 log_freq = 10
 enable_wandb = true
 save_tb_folder = "tb"
+rank_0_only = true
 
 [model]
 name = "llama3"
