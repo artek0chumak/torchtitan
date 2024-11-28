@@ -71,6 +71,7 @@ class HuggingFaceDataset(IterableDataset, Stateful):
         world_size: int = 1,
         rank: int = 0,
         infinite: bool = False,
+        continues_learning_scheduler: Optional[list] = None,
     ) -> None:
         # allow user to pass in a (local or HF hub) path to use unsupported datasets
         if dataset_name not in _supported_datasets:
@@ -102,15 +103,24 @@ class HuggingFaceDataset(IterableDataset, Stateful):
         self._tokenizer = tokenizer
         self.seq_len = seq_len
         self.infinite = infinite
+        self.continues_learning_scheduler = continues_learning_scheduler
+        self.continues_learning_scheduler_idx = 0
 
         # variables for checkpointing
         self._sample_idx = 0
         self._all_tokens: List[int] = []
 
     def __iter__(self):
-        max_buffer_token_len = 1 + self.seq_len
+        self.continues_learning_scheduler_idx = 0
 
         while True:
+            self.continues_learning_scheduler_idx += 1
+            if self.continues_learning_scheduler is not None:
+                seq_len = self.continues_learning_scheduler[self.continues_learning_scheduler_idx]
+            else:
+                seq_len = self.seq_len
+
+            max_buffer_token_len = 1 + seq_len
             for sample in self._get_data_iter():
                 sample_text = sample["text"]
                 sample_tokens = self._tokenizer.encode(sample_text, bos=True, eos=True)
@@ -176,6 +186,18 @@ class DPAwareDataLoader(StatefulDataLoader, Stateful):
             )
             return
         super().load_state_dict(pickle.loads(state_dict[self._rank_id]))
+        
+
+class ContinuesLearningScheduler:
+    def __init__(self, scheduler: list[tuple[int, int]]):
+        self.scheduler = scheduler
+        self.idx = 0
+        
+    def __getitem__(self):
+        for idx, seq_len in self.scheduler:
+            if self.idx >= idx:
+                return seq_len
+        return self.scheduler[-1][1]
 
 
 def build_hf_data_loader(
@@ -187,9 +209,14 @@ def build_hf_data_loader(
     world_size,
     rank,
     infinite: bool = True,
+    continues_learning_scheduler: Optional[ContinuesLearningScheduler] = None,
 ):
     hf_ds = HuggingFaceDataset(
-        dataset_name, dataset_path, tokenizer, seq_len, world_size, rank, infinite
+        dataset_name, dataset_path, tokenizer, seq_len, world_size, rank, infinite, continues_learning_scheduler
     )
 
     return DPAwareDataLoader(rank, hf_ds, batch_size=batch_size)
+
+
+def build_continues_learning_scheduler(continues_learning_scheduler: list[tuple[int, int]]):
+    return ContinuesLearningScheduler(continues_learning_scheduler)

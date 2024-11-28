@@ -86,6 +86,11 @@ def main(job_config: JobConfig):
     # build tokenizer
     tokenizer_type = model_name_to_tokenizer[model_name]
     tokenizer = build_tokenizer(tokenizer_type, job_config.model.tokenizer_path)
+    
+    if job_config.training.continues_learning_scheduler is not None:
+        continues_learning_scheduler = build_continues_learning_scheduler(job_config.training.continues_learning_scheduler)
+    else:
+        continues_learning_scheduler = None
 
     # build dataloader
     data_loader = build_hf_data_loader(
@@ -96,6 +101,7 @@ def main(job_config: JobConfig):
         job_config.training.seq_len,
         dp_degree,
         dp_rank,
+        continues_learning_scheduler,
     )
 
     # build model (using meta init)
