@@ -191,14 +191,13 @@ class DPAwareDataLoader(StatefulDataLoader, Stateful):
 class ContinuesLearningScheduler:
     def __init__(self, scheduler: list[dict[str, int]]):
         self.scheduler = scheduler
-        self.idx = 0
-        
-    def __getitem__(self):
+
+    def __getitem__(self, idx: int):
         for item in self.scheduler:
-            idx, seq_len = item["before_step"], item["seq_len"]
-            if self.idx >= idx:
+            before_step, seq_len = item["before_step"], item["seq_len"]
+            if before_step <= idx:
                 return seq_len
-        return self.scheduler[-1][1]
+        return self.scheduler[-1]["seq_len"]
 
 
 def build_hf_data_loader(
