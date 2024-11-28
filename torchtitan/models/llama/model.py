@@ -16,7 +16,10 @@ import torch.nn.functional as F
 from torch import nn
 from torchtitan.models.norms import build_norm
 
-import flash_attn.flash_attn_interface as flash_attn_interface
+try:
+    import flash_attn.flash_attn_interface as flash_attn_interface
+except ImportError:
+    flash_attn_interface = None
 
 
 @dataclass
