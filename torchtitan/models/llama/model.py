@@ -17,7 +17,7 @@ from torch import nn
 from torchtitan.models.norms import build_norm
 
 try:
-    import flash_attn.flash_attn_interface as flash_attn_interface
+    from flash_attn import flash_attn_func
 except ImportError:
     flash_attn_interface = None
 
@@ -171,7 +171,7 @@ class Attention(nn.Module):
             model_args.n_heads * self.head_dim, model_args.dim, bias=False
         )
         
-        self.attention_func = flash_attn_interface.flash_attn_unpadded_qkvpacked_func if model_args.use_flash_attn else None
+        self.attention_func = flash_attn_func if model_args.use_flash_attn else None
 
     def init_weights(self, init_std: float):
         for linear in (self.wq, self.wk, self.wv):

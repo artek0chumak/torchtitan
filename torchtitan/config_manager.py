@@ -184,6 +184,12 @@ class JobConfig:
             default="./torchtitan/datasets/tokenizer/tokenizer.model",
             help="Tokenizer path",
         )
+        self.parser.add_argument(
+            "--model.use_flash_attn",
+            default=False,
+            action="store_true",
+            help="Whether to use flash attention",
+        )
 
         # optimizer configs
         self.parser.add_argument(

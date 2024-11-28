@@ -167,5 +167,10 @@ def build_metric_logger(
         logger.info(
             f"Metrics logging active. Metrics will be logged to Weights & Biases with project {tb_config.wandb_project}"
         )
+        if tb_config.rank_0_only:
+            enable_wandb = torch.distributed.get_rank() == _get_metrics_rank(parallel_dims)
+        else:
+            rank_str = f"rank_{torch.distributed.get_rank()}"
+            log_dir = os.path.join(log_dir, rank_str)
 
     return MetricLogger(log_dir, tag, enable_tb, enable_wandb, tb_config.wandb_project)
