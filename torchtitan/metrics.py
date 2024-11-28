@@ -102,6 +102,7 @@ class MetricLogger:
     def __init__(self, log_dir, tag, enable_tb, enable_wandb, wandb_project):
         self.tag = tag
         self.writer: Optional[SummaryWriter] = None
+        self.wandb: Optional[wandb.Run] = None
         if enable_tb:
             self.writer = SummaryWriter(log_dir, max_queue=1000)
         if enable_wandb:
