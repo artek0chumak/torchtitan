@@ -190,6 +190,12 @@ class JobConfig:
             action="store_true",
             help="Whether to use flash attention",
         )
+        self.parser.add_argument(
+            "--model.average_grad_embedding",
+            default=False,
+            action="store_true",
+            help="Whether to average the gradient of the embedding layer",
+        )
 
         # optimizer configs
         self.parser.add_argument(
