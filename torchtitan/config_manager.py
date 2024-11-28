@@ -288,6 +288,12 @@ class JobConfig:
             help="Whether to apply loss parallel when sequence parallel is enabled",
         )
         self.parser.add_argument(
+            "--training.continues_learning_scheduler",
+            type=list,
+            default=None,
+            help="Continues learning scheduler",
+        )
+        self.parser.add_argument(
             "--experimental.enable_async_tensor_parallel",
             default=False,
             action="store_true",
