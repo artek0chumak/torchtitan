@@ -91,6 +91,8 @@ def main(job_config: JobConfig):
         continues_learning_scheduler = build_continues_learning_scheduler(job_config.training.continues_learning_scheduler)
     else:
         continues_learning_scheduler = None
+        
+    logger.info(f"Continues learning scheduler: {continues_learning_scheduler}")
 
     # build dataloader
     data_loader = build_hf_data_loader(

@@ -121,6 +121,7 @@ class HuggingFaceDataset(IterableDataset, Stateful):
                 seq_len = self.seq_len
 
             max_buffer_token_len = 1 + seq_len
+            logger.info(f"Max buffer token len: {max_buffer_token_len}")
             for sample in self._get_data_iter():
                 sample_text = sample["text"]
                 sample_tokens = self._tokenizer.encode(sample_text, bos=True, eos=True)
