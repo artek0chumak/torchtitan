@@ -343,6 +343,49 @@ class TransformerBlock(nn.Module):
         self.feed_forward.init_weights(self.weight_init_std)
 
 
+# class EmbeddingAverageGradFN(torch.autograd.Function):
+#     """
+#     Average the gradient of the embedding layer.
+#     Forward pass is the same as the embedding layer.
+#     Backward pass is almost the same, except every unused embedding get averaged embedding gradient of the used embeddings.
+#     """
+#     @staticmethod
+#     def forward(ctx, input: torch.Tensor, embedding: torch.Tensor):
+#         ctx.input = input
+#         ctx.max_embedding_idx = embedding.shape[0]
+#         return embedding(input)
+    
+#     @staticmethod
+#     def backward(ctx, grad_output: torch.Tensor):
+#         # use input to get grad_mask
+#         input = ctx.input # shape: (batch_size, seq_len)
+#         # mask every token in input that is not used
+#         grad_mask = torch.arange(ctx.max_embedding_idx).repeat(input.shape[0], 1) < input
+#         grad_input = grad_output.clone()
+#         grad_input[~grad_mask] = grad_output[grad_mask].mean(dim=1)
+#         return grad_input, None
+
+
+# class EmbeddingAverage(nn.Embedding):
+#     def __init__(self, vocab_size: int, dim: int):
+#         super().__init__(vocab_size, dim)
+            
+#     def forward(self, input: torch.Tensor):
+#         return EmbeddingAverageGradFN.apply(input, self.weight)
+
+# Instead of this, use hooks
+
+
+def average_grad_backward_hook(embedding: nn.Embedding):
+    """Hook to average the gradient of the embedding layer."""
+    def hook(module, grad_input, grad_output):
+        with torch.no_grad():
+            mask = (grad_input[0].abs() > 0).sum(dim=1) > 0
+            grad_input[0][~mask] = grad_input[0][mask].mean(dim=0)
+        return grad_input
+    return hook
+
+
 class Transformer(nn.Module):
     """
     Transformer Module
@@ -369,6 +412,7 @@ class Transformer(nn.Module):
         self.n_layers = model_args.n_layers
 
         self.tok_embeddings = nn.Embedding(model_args.vocab_size, model_args.dim)
+        self.tok_embeddings.register_backward_hook(average_grad_backward_hook(self.tok_embeddings))
 
         # TODO persistent should be set to false, since this buffer can be recomputed.
         # however, we set it to true for 2 reasons.  (1) due to pytorch/pytorch#123411,
