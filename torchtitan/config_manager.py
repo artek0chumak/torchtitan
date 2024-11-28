@@ -289,7 +289,7 @@ class JobConfig:
         )
         self.parser.add_argument(
             "--training.continues_learning_scheduler",
-            type=list[tuple[int, int]],
+            type=list[dict[str, int]],
             default=None,
             help="Continues learning scheduler",
         )
