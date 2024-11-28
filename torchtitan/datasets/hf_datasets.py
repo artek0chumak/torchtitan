@@ -71,7 +71,7 @@ class HuggingFaceDataset(IterableDataset, Stateful):
         world_size: int = 1,
         rank: int = 0,
         infinite: bool = False,
-        continues_learning_scheduler: Optional[ContinuesLearningScheduler] = None,
+        continues_learning_scheduler: Optional[int] = None,
     ) -> None:
         # allow user to pass in a (local or HF hub) path to use unsupported datasets
         if dataset_name not in _supported_datasets:

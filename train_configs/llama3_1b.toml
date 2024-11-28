@@ -29,7 +29,7 @@ lr = 3e-4
 
 [training]
 batch_size = 8
-seq_len = 1024
+seq_len = 64
 warmup_steps = 200  # lr scheduler warm up
 max_norm = 1.0  # grad norm clipping
 steps = 10000
@@ -38,7 +38,6 @@ data_parallel_shard_degree = -1
 tensor_parallel_degree = 1
 compile = false
 dataset = "c4"
-continues_learning_scheduler = [{ before_step = 1000, seq_len = 64}, { before_step = 2000, seq_len = 256}, { before_step = 3000, seq_len = 1024}]
 
 [experimental]
 context_parallel_degree = 1
