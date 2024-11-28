@@ -289,10 +289,11 @@ class JobConfig:
         )
         self.parser.add_argument(
             "--training.continues_learning_scheduler",
-            type=list,
+            type=list[tuple[int, int]],
             default=None,
             help="Continues learning scheduler",
         )
+
         self.parser.add_argument(
             "--experimental.enable_async_tensor_parallel",
             default=False,
