@@ -315,12 +315,16 @@ def main(job_config: JobConfig):
                     loss.backward()
 
             # clip gradients
-            utils.clip_grad_norm_(
-                [p for m in model_parts for p in m.parameters()],
-                job_config.training.max_norm,
-                foreach=True,
-                pp_mesh=pp_mesh if parallel_dims.pp_enabled else None,
-            )
+            for m in model_parts:
+                torch.nn.utils.clip_grad_norm_(
+                    m.parameters(), job_config.training.max_norm, foreach=True
+                )
+            # utils.clip_grad_norm_(
+            #     [p for m in model_parts for p in m.parameters()],
+            #     job_config.training.max_norm,
+            #     foreach=True,
+            #     pp_mesh=pp_mesh if parallel_dims.pp_enabled else None,
+            # )
 
             # sync float8 amaxes and scales
             float8_handler.sync_float8_amax_and_scale_history(model_parts)

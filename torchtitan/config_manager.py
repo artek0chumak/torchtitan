@@ -137,6 +137,12 @@ class JobConfig:
             help="Whether to log metrics to Weights & Biases",
         )
         self.parser.add_argument(
+            "--metrics.wandb_project",
+            type=str,
+            default="torchtitan",
+            help="Weights & Biases project name",
+        )
+        self.parser.add_argument(
             "--metrics.save_tb_folder",
             type=str,
             default="tb",

@@ -99,13 +99,13 @@ def build_device_memory_monitor():
 
 
 class MetricLogger:
-    def __init__(self, log_dir, tag, enable_tb, enable_wandb):
+    def __init__(self, log_dir, tag, enable_tb, enable_wandb, wandb_project):
         self.tag = tag
         self.writer: Optional[SummaryWriter] = None
         if enable_tb:
             self.writer = SummaryWriter(log_dir, max_queue=1000)
         if enable_wandb:
-            self.wandb = wandb.init(project="torchtitan", name=tag)
+            self.wandb = wandb.init(project=wandb_project, name=tag)
 
     def log(self, metrics: Dict[str, Any], step: int):
         if self.writer is not None:
@@ -152,6 +152,7 @@ def build_metric_logger(
     log_dir = os.path.join(dump_dir, save_tb_folder, datetime_str)
 
     enable_tb = tb_config.enable_tensorboard
+    enable_wandb = tb_config.enable_wandb
     if enable_tb:
         logger.info(
             f"Metrics logging active. Tensorboard logs will be saved at {log_dir}"
@@ -162,4 +163,9 @@ def build_metric_logger(
             rank_str = f"rank_{torch.distributed.get_rank()}"
             log_dir = os.path.join(log_dir, rank_str)
 
-    return MetricLogger(log_dir, tag, enable_tb)
+    if enable_wandb:
+        logger.info(
+            f"Metrics logging active. Metrics will be logged to Weights & Biases with project {tb_config.wandb_project}"
+        )
+
+    return MetricLogger(log_dir, tag, enable_tb, enable_wandb, tb_config.wandb_project)
