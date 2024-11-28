@@ -10,6 +10,7 @@ from datetime import datetime
 from typing import Any, Dict, Optional
 
 import torch
+import wandb
 from torch.utils.tensorboard import SummaryWriter
 from torchtitan.config_manager import JobConfig
 from torchtitan.logging import logger
@@ -98,17 +99,21 @@ def build_device_memory_monitor():
 
 
 class MetricLogger:
-    def __init__(self, log_dir, tag, enable_tb):
+    def __init__(self, log_dir, tag, enable_tb, enable_wandb):
         self.tag = tag
         self.writer: Optional[SummaryWriter] = None
         if enable_tb:
             self.writer = SummaryWriter(log_dir, max_queue=1000)
+        if enable_wandb:
+            self.wandb = wandb.init(project="torchtitan", name=tag)
 
     def log(self, metrics: Dict[str, Any], step: int):
         if self.writer is not None:
             for k, v in metrics.items():
                 tag = k if self.tag is None else f"{self.tag}/{k}"
                 self.writer.add_scalar(tag, v, step)
+        if self.wandb is not None:
+            self.wandb.log(metrics, step=step)
 
     def close(self):
         if self.writer is not None:

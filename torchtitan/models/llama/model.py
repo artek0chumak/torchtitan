@@ -16,6 +16,8 @@ import torch.nn.functional as F
 from torch import nn
 from torchtitan.models.norms import build_norm
 
+import flash_attn.flash_attn_interface as flash_attn_interface
+
 
 @dataclass
 class ModelArgs:
@@ -34,6 +36,7 @@ class ModelArgs:
     # `False`, each uses the total number of transformer blocks
     depth_init: bool = True
     norm_type: str = "rmsnorm"
+    use_flash_attn: bool = False
 
 
 def precompute_freqs_cis(dim: int, end: int, theta: float = 10000.0) -> torch.Tensor:
@@ -164,6 +167,8 @@ class Attention(nn.Module):
         self.wo = nn.Linear(
             model_args.n_heads * self.head_dim, model_args.dim, bias=False
         )
+        
+        self.attention_func = flash_attn_interface.flash_attn_unpadded_qkvpacked_func if model_args.use_flash_attn else None
 
     def init_weights(self, init_std: float):
         for linear in (self.wq, self.wk, self.wv):
@@ -207,7 +212,10 @@ class Attention(nn.Module):
         xv = values.transpose(1, 2)  # (bs, n_local_heads, seqlen, head_dim)
 
         # we use casual mask for training
-        output = F.scaled_dot_product_attention(xq, xk, xv, is_causal=True)
+        if self.attention_func is not None:
+            output = self.attention_func(xq, xk, xv, causal=True)
+        else:
+            output = F.scaled_dot_product_attention(xq, xk, xv, is_causal=True)
         output = output.transpose(
             1, 2
         ).contiguous()  # (bs, seqlen, n_local_heads, head_dim)

@@ -132,6 +132,11 @@ class JobConfig:
             help="Whether to log metrics to TensorBoard",
         )
         self.parser.add_argument(
+            "--metrics.enable_wandb",
+            action="store_true",
+            help="Whether to log metrics to Weights & Biases",
+        )
+        self.parser.add_argument(
             "--metrics.save_tb_folder",
             type=str,
             default="tb",
