@@ -40,6 +40,7 @@ class ModelArgs:
     depth_init: bool = True
     norm_type: str = "rmsnorm"
     use_flash_attn: bool = False
+    average_grad_embedding: bool = False
 
 
 def precompute_freqs_cis(dim: int, end: int, theta: float = 10000.0) -> torch.Tensor:

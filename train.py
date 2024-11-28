@@ -116,6 +116,8 @@ def main(job_config: JobConfig):
     model_config.norm_type = job_config.model.norm_type
     model_config.vocab_size = tokenizer.n_words
     model_config.max_seq_len = job_config.training.seq_len
+    model_config.use_flash_attn = job_config.model.use_flash_attn
+    model_config.average_grad_embedding = job_config.model.average_grad_embedding
 
     logger.info(f"Building {model_name} {job_config.model.flavor} with {model_config}")
     with torch.device("meta"):
