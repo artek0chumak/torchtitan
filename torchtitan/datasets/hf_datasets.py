@@ -114,15 +114,16 @@ class HuggingFaceDataset(IterableDataset, Stateful):
         self.continues_learning_scheduler_idx = 0
 
         while True:
-            self.continues_learning_scheduler_idx += 1
-            if self.continues_learning_scheduler is not None:
-                seq_len = self.continues_learning_scheduler[self.continues_learning_scheduler_idx]
-            else:
-                seq_len = self.seq_len
-
-            max_buffer_token_len = 1 + seq_len
-            logger.info(f"Max buffer token len: {max_buffer_token_len}")
             for sample in self._get_data_iter():
+                self.continues_learning_scheduler_idx += 1
+                if self.continues_learning_scheduler is not None:
+                    seq_len = self.continues_learning_scheduler[self.continues_learning_scheduler_idx]
+                else:
+                    seq_len = self.seq_len
+
+                max_buffer_token_len = 1 + seq_len
+                logger.info(f"Max buffer token len: {max_buffer_token_len}")
+
                 sample_text = sample["text"]
                 sample_tokens = self._tokenizer.encode(sample_text, bos=True, eos=True)
                 self._all_tokens.extend(sample_tokens)
